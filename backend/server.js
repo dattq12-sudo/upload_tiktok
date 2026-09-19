@@ -34,6 +34,7 @@ import {
   markAllDone, cancelJob, isAborted, getExcelBuffer,
 } from './stats-store.js';
 import { runStatsForProfile } from './stats-automation.mjs';
+import { buildBrowserLaunchOptions } from './browser-launch.js';
 import { randomUUID } from 'node:crypto';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -3304,20 +3305,10 @@ app.post('/api/open-profile', async (req, res) => {
 
     try {
         const userDataDir = path.join(PROFILES_DIR, profile.name);
-        const browserOptions = {
-            headless: false,
-            args: [
-                '--disable-blink-features=AutomationControlled'
-            ]
-        };
-
-        if (profile.proxy && profile.use_proxy !== 0) {
-            const proxyConfig = parseProxy(profile.proxy);
-            if (proxyConfig) {
-                browserOptions.proxy = proxyConfig;
-                console.log(`[${profile.name}] Using proxy: ${proxyConfig.server}${proxyConfig.username ? ' (with auth)' : ''}`);
-            }
-        }
+        const browserOptions = buildBrowserLaunchOptions(profile, {
+            parseProxy,
+            log: (msg) => console.log(`[${profile.name}] ${msg}`)
+        });
 
         const browser = await chromium.launchPersistentContext(userDataDir, browserOptions);
         await applyProfileFingerprint(browser, profile);
@@ -3351,14 +3342,7 @@ async function changeAvatar(profile, avatarImage) {
         } catch (e) {}
     };
 
-    const browserOptions = {
-        headless: false,
-        args: ['--disable-blink-features=AutomationControlled']
-    };
-    if (profile.proxy && profile.use_proxy !== 0) {
-        const proxyConfig = parseProxy(profile.proxy);
-        if (proxyConfig) browserOptions.proxy = proxyConfig;
-    }
+    const browserOptions = buildBrowserLaunchOptions(profile, { parseProxy });
 
     const browser = await chromium.launchPersistentContext(userDataDir, browserOptions);
     await applyProfileFingerprint(browser, profile);
@@ -3555,14 +3539,7 @@ async function addFavoriteMusic(profile, searchTerm) {
         return;
     }
 
-    const browserOptions = {
-        headless: false,
-        args: ['--disable-blink-features=AutomationControlled']
-    };
-    if (profile.proxy && profile.use_proxy !== 0) {
-        const proxyConfig = parseProxy(profile.proxy);
-        if (proxyConfig) browserOptions.proxy = proxyConfig;
-    }
+    const browserOptions = buildBrowserLaunchOptions(profile, { parseProxy });
 
     const browser = await chromium.launchPersistentContext(userDataDir, browserOptions);
     await applyProfileFingerprint(browser, profile);
@@ -4575,20 +4552,10 @@ async function uploadVideo(profile, videoFolder, videos, limitUploads = false, u
     let lastScheduledTime = null;
     let hasExistingSchedule = false;
 
-    const browserOptions = {
-        headless: false,
-        args: [
-            '--disable-blink-features=AutomationControlled'
-        ]
-    };
-
-    if (profile.proxy && profile.use_proxy !== 0) {
-        const proxyConfig = parseProxy(profile.proxy);
-        if (proxyConfig) {
-            browserOptions.proxy = proxyConfig;
-            console.log(`[${profile.name}] Using proxy: ${proxyConfig.server}${proxyConfig.username ? ' (with auth)' : ''}`);
-        }
-    }
+    const browserOptions = buildBrowserLaunchOptions(profile, {
+        parseProxy,
+        log: (msg) => console.log(`[${profile.name}] ${msg}`)
+    });
 
     const browser = await chromium.launchPersistentContext(userDataDir, browserOptions);
     await applyProfileFingerprint(browser, profile);
@@ -5782,18 +5749,7 @@ async function runEngageSession(profile) {
         } catch (e) { }
     };
 
-    const browserOptions = {
-        headless: false,
-        args: ['--disable-blink-features=AutomationControlled']
-    };
-
-    if (profile.proxy && profile.use_proxy !== 0) {
-        const proxyConfig = parseProxy(profile.proxy);
-        if (proxyConfig) {
-            browserOptions.proxy = proxyConfig;
-            log(`Using proxy: ${proxyConfig.server}`);
-        }
-    }
+    const browserOptions = buildBrowserLaunchOptions(profile, { parseProxy, log });
 
     const browser = await chromium.launchPersistentContext(userDataDir, browserOptions);
     await applyProfileFingerprint(browser, profile);
@@ -6552,14 +6508,7 @@ async function runTikTokLogin(profile) {
         } catch (e) {}
     };
 
-    const browserOptions = {
-        headless: false,
-        args: ['--disable-blink-features=AutomationControlled']
-    };
-    if (profile.proxy && profile.use_proxy !== 0) {
-        const proxyConfig = parseProxy(profile.proxy);
-        if (proxyConfig) browserOptions.proxy = proxyConfig;
-    }
+    const browserOptions = buildBrowserLaunchOptions(profile, { parseProxy });
 
     const browser = await chromium.launchPersistentContext(userDataDir, browserOptions);
     await applyProfileFingerprint(browser, profile);

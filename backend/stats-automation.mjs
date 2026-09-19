@@ -1,5 +1,6 @@
 // backend/stats-automation.mjs
 import { chromium } from 'playwright';
+import { buildBrowserLaunchOptions } from './browser-launch.js';
 import path from 'path';
 
 const CONTENT_URL = 'https://www.tiktok.com/tiktokstudio/content';
@@ -23,12 +24,11 @@ export async function runStatsForProfile(profile, jobId, ctx) {
   const log = (msg) => console.log(`[${profile.name}][STATS] ${msg}`);
 
   try {
-    const browserOptions = {
-      headless: false,
-      args: ['--disable-blink-features=AutomationControlled', '--window-size=1440,900'],
-      viewport: { width: 1440, height: 900 },
-    };
     // Stats automation does NOT use proxy — direct connection for stability
+    const browserOptions = buildBrowserLaunchOptions(null, {
+      extraArgs: ['--window-size=1440,900'],
+      viewport: { width: 1440, height: 900 },
+    });
 
     browser = await chromium.launchPersistentContext(userDataDir, browserOptions);
 
